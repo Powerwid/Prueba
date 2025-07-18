@@ -1,0 +1,125 @@
+Table Categoria {
+    IdCategoria serial [pk, increment]
+    Nombre varchar(100) [not null]
+    Descripcion text
+  }
+
+  Table TipoDocumento {
+    IdTipoDocumento serial [pk, increment]
+    Nombre varchar(30) [unique, not null]
+  }
+
+  Table UnidadMedida {
+    IdUnidadMedida serial [pk, increment]
+    Nombre varchar(50) [unique, not null]
+    Abreviatura varchar(10) [unique, not null]
+  }
+
+
+
+  Table Cliente {
+    IdCliente serial [pk, increment]
+    Nombre varchar(100) [not null]
+    Apellido varchar(100) [not null]
+    IdTipoDocumento int [not null]
+    NumeroDocumento varchar(30) [unique, not null]
+    Correo varchar(100) [unique, not null]
+    DireccionEnvio text
+    Telefono varchar(20)
+  }
+
+  Table EstadoPedido {
+    IdEstadoPedido serial [pk, increment]
+    Nombre varchar(30) [unique, not null]
+  }
+
+  Table MetodoPago {
+    IdMetodoPago serial [pk, increment]
+    Nombre varchar(50) [unique, not null]
+    Activo boolean [default: true]
+  }
+
+  Table EmpresaTransporte {
+    IdEmpresaTransporte serial [pk, increment]
+    Nombre varchar(100) [unique, not null]
+    CorreoContacto varchar(150) [unique, not null]
+    Telefono varchar(20)
+    Direccion text
+    Activo boolean [default: true]
+  }
+
+  Table Proveedor {
+    IdProveedor serial [pk, increment]
+    Nombre varchar(100) [not null]
+    RazonSocial varchar(150)
+    DireccionChina text
+    CorreoContacto varchar(150) [unique, not null]
+    Telefono varchar(20)
+  }
+
+  Table Importacion {
+    IdImportacion serial [pk, increment]
+    CodigoEmbarque varchar(50) [unique, not null]
+    FechaLlega date
+    IdEmpresaTransporte int [not null]
+    CostoTotal numeric(10,2)
+  }
+
+  Table Producto {
+    IdProducto serial [pk, increment]
+    Nombre varchar(100) [not null]
+    Descripcion text
+    IdCategoria int [not null]
+    PrecioCompraYuanes numeric(10,2) [not null]
+    PrecioVentaSoles numeric(10,2) [not null]
+    Stock int [default: 0]
+    IdUnidadMedida int [not null]
+    FechaImportacion date
+    IdProveedor int
+    IdImportacion int
+  }
+
+  Table Pedido {
+    IdPedido serial [pk, increment]
+    IdCliente int [not null]
+    IdEstadoPedido int [not null]
+    IdMetodoPago int [not null]
+    Fecha timestamp [default: `CURRENT_TIMESTAMP`]
+    Total numeric(10,2)
+  }
+
+  Table DetallePedido {
+    IdDetallePedido serial [pk, increment]
+    IdPedido int [not null]
+    IdProducto int [not null]
+    Cantidad int [not null] // CHECK (Cantidad > 0)
+    PrecioUnitario numeric(10,2) [not null] // CHECK (PrecioUnitario >= 0)
+    SubTotal numeric(10,2) 
+  }
+
+  Table FotoProducto {
+    IdFotoProducto serial [pk, increment]
+    IdProducto int [not null]
+    Url text [not null]
+  }
+
+  Table VideoProducto {
+    IdProducto int [pk]
+    Url text [not null]
+  }
+
+
+
+  Ref: TipoDocumento.IdTipoDocumento > Cliente.IdTipoDocumento 
+  Ref: EmpresaTransporte.IdEmpresaTransporte > Importacion.IdEmpresaTransporte
+  Ref: Categoria.IdCategoria > Producto.IdCategoria 
+  Ref: Proveedor.IdProveedor > Producto.IdProveedor 
+  Ref: Importacion.IdImportacion > Producto.IdImportacion 
+  Ref: UnidadMedida.IdUnidadMedida > Producto.IdUnidadMedida 
+  Ref: Cliente.IdCliente > Pedido.IdCliente 
+  Ref: EstadoPedido.IdEstadoPedido > Pedido.IdEstadoPedido 
+  Ref: MetodoPago.IdMetodoPago > Pedido.IdMetodoPago 
+  Ref: Pedido.IdPedido > DetallePedido.IdPedido 
+  Ref: Producto.IdProducto > DetallePedido.IdProducto 
+  Ref: Producto.IdProducto > FotoProducto.IdProducto 
+  Ref: Producto.IdProducto > VideoProducto.IdProducto 

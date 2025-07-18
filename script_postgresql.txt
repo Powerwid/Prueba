@@ -1,0 +1,150 @@
+	Create table Categoria (
+		IdCategoria SERIAL primary key,
+		Nombre VARCHAR(100) NOT NULL,
+		Descripcion TEXT
+	);
+
+	Create table TipoDocumento (
+	
+		IdTipoDocumento SERIAL primary key,
+		Nombre VARCHAR(30) NOT NULL UNIQUE
+	);
+
+	INSERT INTO TipoDocumento (Nombre) Values
+	('DNI'), ('RUC'), ('Pasaporte'), ('Carnet de Extranjería');
+
+	CREATE TABLE UnidadMedida (
+	    IdUnidadMedida SERIAL PRIMARY KEY,
+	    Nombre VARCHAR(50) NOT NULL UNIQUE,
+	    Abreviatura VARCHAR(10) NOT NULL UNIQUE
+	);
+
+	INSERT INTO UnidadMedida (Nombre, Abreviatura) VALUES
+	('Unidad', 'unid'),
+	('Kilogramo', 'kg'),
+	('Litro', 'L'),
+	('Caja', 'cj'),
+	('Paquete', 'pkg');
+
+	Create table Cliente (
+	
+		IdCliente SERIAL primary key,
+		Nombre VARCHAR(100) NOT NULL,
+		Apellido VARCHAR(100) NOT NULL,
+		IdTipoDocumento INT NOT NULL,
+		NumeroDocumento VARCHAR(30) NOT NULL UNIQUE,
+		Correo VARCHAR(100) NOT NULL UNIQUE,
+		DireccionEnvio TEXT,
+		Telefono VARCHAR(20),
+
+		CONSTRAINT fk_tipodocumento FOREIGN KEY (IdTipoDocumento) REFERENCES TipoDocumento(IdTipoDocumento)
+	);
+
+	Create table EstadoPedido (
+		IdEstadoPedido SERIAL PRIMARY KEY,
+		Nombre VARCHAR(30) NOT NULL UNIQUE
+	);
+	
+	INSERT INTO EstadoPedido (Nombre) VALUES
+	('pendiente'), ('pagado'), ('enviado'), ('entregado'), ('cancelado');
+
+	Create table MetodoPago (
+	    IdMetodoPago SERIAL PRIMARY KEY,
+	    Nombre VARCHAR(50) NOT NULL UNIQUE,
+	    Activo BOOLEAN DEFAULT TRUE
+	);
+	
+	INSERT INTO MetodoPago (Nombre) VALUES
+	('Tarjeta de crédito'),('Transferencia bancaria'),('Pago contra entrega'),('Yape'),('Plin');
+
+	Create table EmpresaTransporte (
+	
+		IdEmpresaTransporte SERIAL primary key,
+		Nombre VARCHAR(100) NOT NULL UNIQUE,
+		CorreoContacto VARCHAR(150) NOT NULL UNIQUE,
+		Telefono VARCHAR(20),
+		Direccion TEXT,
+		Activo BOOLEAN DEFAULT TRUE
+	);
+
+	Create table Proveedor (
+		IdProveedor Serial primary key,
+		Nombre VARCHAR(100) NOT NULL,
+		RazonSocial VARCHAR(150),
+		DireccionChina TEXT,
+		CorreoContacto VARCHAR(150) NOT NULL UNIQUE,
+		Telefono VARCHAR(20)
+	);
+
+	Create table Importacion (
+	
+		IdImportacion Serial primary key,
+		CodigoEmbarque VARCHAR(50) NOT NULL UNIQUE,
+		FechaLlega Date,
+		IdEmpresaTransporte INT NOT NULL,
+		CostoTotal NUMERIC(10,2),
+		
+		CONSTRAINT fk_transportadora FOREIGN KEY (IdEmpresaTransporte) REFERENCES EmpresaTransporte(IdEmpresaTransporte)	
+	);
+
+	Create table Producto (
+		
+		IdProducto SERIAL primary key,
+		Nombre VARCHAR(100) NOT NULL,
+		Descripcion TEXT,
+		IdCategoria INT NOT NULL,
+		PrecioCompraYuanes Numeric(10, 2) NOT NULL,
+		PrecioVentaSoles Numeric(10, 2) NOT NULL,
+		Stock INT Default 0,
+		IdUnidadMedida INT NOT NULL,
+		FechaImportacion DATE,
+		IdProveedor INT,
+		IdImportacion INT,
+	
+		CONSTRAINT fk_categoria FOREIGN KEY (IdCategoria) REFERENCES Categoria(IdCategoria),
+		CONSTRAINT fk_proveedor FOREIGN KEY (IdProveedor) REFERENCES Proveedor(IdProveedor),
+		CONSTRAINT fk_importacion FOREIGN KEY (IdImportacion) REFERENCES Importacion(IdImportacion),
+		CONSTRAINT fk_unidadmedida FOREIGN KEY (IdUnidadMedida) REFERENCES UnidadMedida(IdUnidadMedida)
+	);
+	
+	Create table Pedido (
+		IdPedido SERIAL primary key,
+		IdCliente INT NOT NULL,
+		IdEstadoPedido INT NOT NULL,
+		IdMetodoPago INT NOT NULL,
+		Fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		Total NUMERIC(10,2),
+
+		CONSTRAINT fk_cliente FOREIGN KEY (IdCliente) REFERENCES Cliente(IdCliente),
+		CONSTRAINT fk_estado FOREIGN KEY (IdEstadoPedido) REFERENCES EstadoPedido(IdEstadoPedido),
+		CONSTRAINT fk_metodopago FOREIGN KEY (IdMetodoPago) REFERENCES MetodoPago(IdMetodoPago)
+	);
+	
+	Create table DetallePedido (
+		IdDetallePedido SERIAL primary key,
+		IdPedido INT NOT NULL,
+		IdProducto INT NOT NULL,
+		Cantidad INT NOT NULL CHECK (Cantidad > 0),
+		PrecioUnitario NUMERIC(10, 2) NOT NULL CHECK (PrecioUnitario >=0),
+		SubTotal NUMERIC(10, 2) GENERATED ALWAYS AS (Cantidad * PrecioUnitario) STORED,
+
+		CONSTRAINT fk_pedido FOREIGN KEY (IdPedido) REFERENCES Pedido(IdPedido),
+		CONSTRAINT fk_producto FOREIGN KEY (IdProducto) REFERENCES Producto(IdProducto)
+	);
+	
+	CREATE TABLE FotoProducto (
+	    IdFotoProducto SERIAL PRIMARY KEY,
+	    IdProducto INT NOT NULL,
+	    Url TEXT NOT NULL,
+
+	    CONSTRAINT fk_producto_foto FOREIGN KEY (IdProducto) REFERENCES Producto(IdProducto)
+	);
+	
+	CREATE TABLE VideoProducto (
+	    IdProducto INT PRIMARY KEY,  
+	    Url TEXT NOT NULL,
+	
+	    CONSTRAINT fk_producto_video FOREIGN KEY (IdProducto) REFERENCES Producto(IdProducto)
+	);
+	
+	
